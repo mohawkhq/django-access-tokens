@@ -233,3 +233,41 @@ class TestAuthTokens(TestCase):
     def testScopes(self):
         for test_row in self.getScopeTestData():
             self.assertScopeCorrect(*test_row)
+
+    def testKitchenSink(self):
+        # Access specific models using a global read token.
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read") + scope.access_obj(self.obj2, "read"),
+            scope.access_all("read"),
+            True,
+        )
+        # Then fail it by asking for a new permission.
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read", "write") + scope.access_obj(self.obj2, "read"),
+            scope.access_all("read"),
+            False,
+        )
+        # Access specific objects using a specific read and write token.
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read", "write") + scope.access_obj(self.obj2, "read", "write"),
+            scope.access_model(TestModel, "read", "write") + scope.access_model(TestModel2, "read", "write"),
+            True,
+        )
+        # Then fail it because access wasn't granted to the second model.
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read", "write") + scope.access_obj(self.obj2, "read", "write"),
+            scope.access_model(TestModel, "read", "write"),
+            False,
+        )
+        # Then give it back with a token for the whole app.
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read", "write") + scope.access_obj(self.obj2, "read", "write"),
+            scope.access_model(TestModel, "read", "write") + scope.access_app("dj_authtokens", "read", "write"),
+            True,
+        )
+        # Finally, give read access to everything, write access to a specific model, and it should work.
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read", "write"),
+            scope.access_model(self.obj, "write") + scope.access_all("read"),
+            True,
+        )
