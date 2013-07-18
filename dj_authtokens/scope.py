@@ -1,55 +1,46 @@
 from itertools import chain
 
 
-def access_obj(obj, *permissions):
-    return (
-        (
-            (
-                obj._meta.app_label,
-                obj._meta.module_name,
-                obj.pk,
-            ),
-            permissions,
-        ),
-    )
-
-
-def access_model(model, *permissions):
-    return (
-        (
-            (
-                model._meta.app_label,
-                model._meta.module_name,
-                None,
-            ),
-            permissions,
-        ),
-    )
-
-
-def access_app(app_label, *permissions):
+def _make_grant(permissions, app_label=None, module_name=None, pk=None):
     return (
         (
             (
                 app_label,
-                None,
-                None,
+                module_name,
+                pk,
             ),
             permissions,
         ),
     )
 
 
+def access_obj(obj, *permissions):
+    return _make_grant(
+        permissions,
+        obj._meta.app_label,
+        obj._meta.module_name,
+        obj.pk,
+    )
+
+
+def access_model(model, *permissions):
+    return _make_grant(
+        permissions,
+        model._meta.app_label,
+        model._meta.module_name,
+    )
+
+
+def access_app(app_label, *permissions):
+    return _make_grant(
+        permissions,
+        app_label,
+    )
+
+
 def access_all(*permissions):
-    return (
-        (
-            (
-                None,
-                None,
-                None,
-            ),
-            permissions,
-        ),
+    return _make_grant(
+        permissions,
     )
 
 
