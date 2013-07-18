@@ -63,21 +63,12 @@ def _is_sub_model_grant(model_grant, parent_model_grant):
 
 def _is_sub_scope(scope, parent_scope):
     access_permission = object()
-    # Work out what permissions are required.
-    required_access = [
-        (model_grant, set(permissions_grant) | set((access_permission,)))
-        for model_grant, permissions_grant
-        in scope
-    ]
-    # Go through all the parent scope grants.
-    for parent_model_grant, parent_permissions_grant in parent_scope:
-        for model_grant, required_permissions in required_access:
+    for model_grant, permissions_grant in scope:
+        required_permissions = set(permissions_grant) | set((access_permission,))
+        for parent_model_grant, parent_permissions_grant in parent_scope:
             if _is_sub_model_grant(model_grant, parent_model_grant):
                 required_permissions.discard(access_permission)
                 required_permissions.difference_update(parent_permissions_grant)
-    # If no permissions remain to be fullfilled, then the scope is a sub-scope.
-    return not any(
-        required_permissions
-        for _, required_permissions
-        in required_access
-    )
+        if required_permissions:
+            return False
+    return True
