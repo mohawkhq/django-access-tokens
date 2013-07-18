@@ -1,9 +1,9 @@
 from django.core import signing
 
-from authtokens import scopes
+from dj_authtokens.scope import _is_sub_scope
 
 
-DEFAULT_SALT = "authtokens.tokens"
+DEFAULT_SALT = "dj_authtokens.token"
 
 
 def generate(scope=(), key=None, salt=DEFAULT_SALT):
@@ -17,4 +17,4 @@ def validate(token, scope=(), key=None, salt=DEFAULT_SALT, max_age=None):
     except signing.BadSignature:
         return False
     # Check the scopes.
-    return scopes.is_sub_scope(token_scope, scope)
+    return _is_sub_scope(token_scope, scope)
