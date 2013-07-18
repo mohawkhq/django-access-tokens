@@ -1,4 +1,4 @@
-import collections
+from itertools import chain
 
 
 def access_obj(obj, *permissions):
@@ -53,22 +53,19 @@ def access_all(*permissions):
     )
 
 
-def _is_sub_model_grant(model_grant, parent_model_grant):
-    return all(
-        parent_model_grant_part is None or parent_model_grant_part == model_grant_part
-        for model_grant_part, parent_model_grant_part
-        in zip(model_grant, parent_model_grant)
-    )
-
-
 def _is_sub_scope(scope, parent_scope):
     access_permission = object()
-    for model_grant, permissions_grant in scope:
-        required_permissions = set(permissions_grant) | set((access_permission,))
-        for parent_model_grant, parent_permissions_grant in parent_scope:
-            if _is_sub_model_grant(model_grant, parent_model_grant):
-                required_permissions.discard(access_permission)
-                required_permissions.difference_update(parent_permissions_grant)
-        if required_permissions:
-            return False
-    return True
+    return not any (
+        (set(permissions_grant) | set((access_permission,))) - set(chain.from_iterable(
+            parent_permissions_grant + (access_permission,)
+            for parent_model_grant, parent_permissions_grant
+            in parent_scope
+            if all(
+                parent_model_grant_part is None or parent_model_grant_part == model_grant_part
+                for model_grant_part, parent_model_grant_part
+                in zip(model_grant, parent_model_grant)
+            )
+        ))
+        for model_grant, permissions_grant
+        in scope
+    )
