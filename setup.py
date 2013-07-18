@@ -1,21 +1,21 @@
 from distutils.core import setup
 
-from authtokens import __version__
+from access-tokens import __version__
 
 
 version_str = ".".join(str(n) for n in __version__)
 
 
 setup(
-    name = "django-authtokens",
+    name = "django-access-tokens",
     version = version_str,
     license = "BSD",
     description = "A Django app for for generating secure scoped access tokens.",
     author = "Dave Hall",
     author_email = "dave@etianen.com",
-    url = "http://github.com/mohawkhq/django-authtokens",
+    url = "http://github.com/mohawkhq/django-access-tokens",
     packages = [
-        "authtokens",
+        "access-tokens",
     ],
     classifiers = [
         "Development Status :: 5 - Production/Stable",

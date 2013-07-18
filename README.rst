@@ -1,16 +1,16 @@
-django-authtokens
-=================
+django-access-tokens
+====================
 
-**django-authtokens** is a Django app for generating secure scoped access tokens.
+**django-access-tokens** is a Django app for generating secure scoped access tokens.
 
 
 More information
 ----------------
 
-The django-authtokens project was developed at `Mohawk <http://www.mohawkhq.com/>`_, and
+The django-access-tokens project was developed at `Mohawk <http://www.mohawkhq.com/>`_, and
 is released as Open Source under the MIT license.
 
-You can get the code from the `django-authtokens project site <http://github.com/mohawkhq/django-authtokens>`_.
+You can get the code from the `django-access-tokens project site <http://github.com/mohawkhq/django-access-tokens>`_.
 
 
 Contributors

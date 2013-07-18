@@ -3,7 +3,7 @@ import time
 from django.db import models
 from django.test import TestCase
 
-from dj_authtokens import tokens, scope
+from dj_access_tokens import tokens, scope
 
 
 class TestModel(models.Model):
@@ -16,7 +16,7 @@ class TestModel2(models.Model):
     pass
 
 
-class TestAuthTokens(TestCase):
+class TestAccessTokens(TestCase):
 
     def setUp(self):
         self.obj = TestModel.objects.create()
@@ -99,7 +99,7 @@ class TestAuthTokens(TestCase):
         )
         self.assertScopeValid(
             (),
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
         )
         self.assertScopeValid(
             (),
@@ -120,7 +120,7 @@ class TestAuthTokens(TestCase):
         )
         self.assertScopeValid(
             scope.access_all(),
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
         )
         self.assertScopeValid(
             scope.access_all(),
@@ -141,7 +141,7 @@ class TestAuthTokens(TestCase):
         )
         self.assertScopeValid(
             scope.access_obj(self.obj, "read"),
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
         )
         self.assertScopeValid(
             scope.access_obj(self.obj, "read"),
@@ -162,7 +162,7 @@ class TestAuthTokens(TestCase):
         )
         self.assertScopeValid(
             scope.access_model(TestModel, "read"),
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
         )
         self.assertScopeValid(
             scope.access_model(TestModel, "read"),
@@ -178,23 +178,23 @@ class TestAuthTokens(TestCase):
         )
         # Ask for app access.
         self.assertScopeValid(
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
             scope.access_all("read"),
         )
         self.assertScopeValid(
-            scope.access_app("dj_authtokens", "read"),
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
         )
         self.assertScopeInvalid(
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
             scope.access_model(TestModel, "read"),
         )
         self.assertScopeInvalid(
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
             scope.access_obj(self.obj, "read"),
         )
         self.assertScopeInvalid(
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
             (),
         )
         # Ask for global access.
@@ -204,7 +204,7 @@ class TestAuthTokens(TestCase):
         )
         self.assertScopeInvalid(
             scope.access_all("read"),
-            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_access_tokens", "read"),
         )
         self.assertScopeInvalid(
             scope.access_all("read"),
@@ -243,7 +243,7 @@ class TestAuthTokens(TestCase):
         # Then give it back with a token for the whole app.
         self.assertScopeValid(
             scope.access_obj(self.obj, "read", "write") + scope.access_obj(self.obj2, "read", "write"),
-            scope.access_model(TestModel, "read", "write") + scope.access_app("dj_authtokens", "read", "write"),
+            scope.access_model(TestModel, "read", "write") + scope.access_app("dj_access_tokens", "read", "write"),
         )
         # Finally, give read access to everything, write access to a specific model, and it should work.
         self.assertScopeValid(

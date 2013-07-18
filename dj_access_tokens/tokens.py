@@ -1,9 +1,9 @@
 from django.core import signing
 
-from dj_authtokens.scope import _is_sub_scope
+from dj_access_tokens.scope import _is_sub_scope
 
 
-DEFAULT_SALT = "dj_authtokens.token"
+DEFAULT_SALT = "dj_access_tokens.token"
 
 
 def generate(scope=(), key=None, salt=DEFAULT_SALT):

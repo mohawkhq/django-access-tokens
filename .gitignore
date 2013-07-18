@@ -11,4 +11,4 @@ dist
 build
 MANIFEST
 venv
-dj_authtokens_test
+dj_access_tokens_test
