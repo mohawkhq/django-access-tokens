@@ -42,197 +42,217 @@ class TestAuthTokens(TestCase):
 
     # Valid token tests.
 
-    def getScopeTestData(self):
-        return (
-            # PERMISSIONS.
-            # Asking for no permissions.
-            (
-                scope.access_all(),
-                scope.access_all(),
-                True,
-            ),
-            (
-                scope.access_all(),
-                scope.access_all("read"),
-                True,
-            ),
-            (
-                scope.access_all(),
-                scope.access_all("read", "write"),
-                True,
-            ),
-            # Asking for read permissions.
-            (
-                scope.access_all("read"),
-                scope.access_all(),
-                False,
-            ),
-            (
-                scope.access_all("read"),
-                scope.access_all("read"),
-                True,
-            ),
-            (
-                scope.access_all("read"),
-                scope.access_all("read", "write"),
-                True,
-            ),
-            # Asking for read and write permissions.
-            (
-                scope.access_all("read", "write"),
-                scope.access_all(),
-                False,
-            ),
-            (
-                scope.access_all("read", "write"),
-                scope.access_all("read"),
-                False,
-            ),
-            (
-                scope.access_all("read", "write"),
-                scope.access_all("read", "write"),
-                True,
-            ),
-            # MODELS.
-            # Empty.
-            (
-                (),
-                scope.access_all(),
-                True,
-            ),
-            (
-                (),
-                scope.access_app("dj_authtokens"),
-                True,
-            ),
-            (
-                (),
-                scope.access_model(TestModel),
-                True,
-            ),
-            (
-                (),
-                scope.access_obj(self.obj),
-                True,
-            ),
-            (
-                (),
-                (),
-                True,
-            ),
-            # Obj.
-            (
-                scope.access_obj(self.obj),
-                scope.access_all(),
-                True,
-            ),
-            (
-                scope.access_obj(self.obj),
-                scope.access_app("dj_authtokens"),
-                True,
-            ),
-            (
-                scope.access_obj(self.obj),
-                scope.access_model(TestModel),
-                True,
-            ),
-            (
-                scope.access_obj(self.obj),
-                scope.access_obj(self.obj),
-                True,
-            ),
-            (
-                scope.access_obj(self.obj),
-                (),
-                False,
-            ),
-            # Model.
-            (
-                scope.access_model(TestModel),
-                scope.access_all(),
-                True,
-            ),
-            (
-                scope.access_model(TestModel),
-                scope.access_app("dj_authtokens"),
-                True,
-            ),
-            (
-                scope.access_model(TestModel),
-                scope.access_model(TestModel),
-                True,
-            ),
-            (
-                scope.access_model(TestModel),
-                scope.access_obj(self.obj),
-                False,
-            ),
-            (
-                scope.access_model(TestModel),
-                (),
-                False,
-            ),
-            # App.
-            (
-                scope.access_app("dj_authtokens"),
-                scope.access_all(),
-                True,
-            ),
-            (
-                scope.access_app("dj_authtokens"),
-                scope.access_app("dj_authtokens"),
-                True,
-            ),
-            (
-                scope.access_app("dj_authtokens"),
-                scope.access_model(TestModel),
-                False,
-            ),
-            (
-                scope.access_app("dj_authtokens"),
-                scope.access_obj(self.obj),
-                False,
-            ),
-            (
-                scope.access_app("dj_authtokens"),
-                (),
-                False,
-            ),
-            # All.
-            (
-                scope.access_all(),
-                scope.access_all(),
-                True,
-            ),
-            (
-                scope.access_all(),
-                scope.access_app("dj_authtokens"),
-                False,
-            ),
-            (
-                scope.access_all(),
-                scope.access_model(TestModel),
-                False,
-            ),
-            (
-                scope.access_all(),
-                scope.access_obj(self.obj),
-                False,
-            ),
-            (
-                scope.access_all(),
-                (),
-                False,
-            ),
-        )
-
     def assertScopeCorrect(self, scope, parent_scope, expected):
         token = tokens.generate(scope)
         self.assertEqual(tokens.validate(token, parent_scope), expected)
 
-    def testScopes(self):
-        for test_row in self.getScopeTestData():
-            self.assertScopeCorrect(*test_row)
+    def testScopePermissionGrants(self):
+        # Asking for no permissions.
+        self.assertScopeCorrect(
+            scope.access_all(),
+            scope.access_all(),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_all(),
+            scope.access_all("read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_all(),
+            scope.access_all("read", "write"),
+            True,
+        )
+        # Asking for read permissions.
+        self.assertScopeCorrect(
+            scope.access_all("read"),
+            scope.access_all(),
+            False,
+        )
+        self.assertScopeCorrect(
+            scope.access_all("read"),
+            scope.access_all("read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_all("read"),
+            scope.access_all("read", "write"),
+            True,
+        )
+        # Asking for read and write permissions.
+        self.assertScopeCorrect(
+            scope.access_all("read", "write"),
+            scope.access_all(),
+            False,
+        )
+        self.assertScopeCorrect(
+            scope.access_all("read", "write"),
+            scope.access_all("read"),
+            False,
+        )
+        self.assertScopeCorrect(
+            scope.access_all("read", "write"),
+            scope.access_all("read", "write"),
+            True,
+        )
+
+    def testScopeModelGrants(self):
+        # Ask for no access.
+        self.assertScopeCorrect(
+            (),
+            scope.access_all("read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            (),
+            scope.access_app("dj_authtokens", "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            (),
+            scope.access_model(TestModel, "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            (),
+            scope.access_obj(self.obj, "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            (),
+            (),
+            True,
+        )
+        # Ask for access, but no permissions
+        self.assertScopeCorrect(
+            scope.access_all(),
+            scope.access_all("read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_all(),
+            scope.access_app("dj_authtokens", "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_all(),
+            scope.access_model(TestModel, "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_all(),
+            scope.access_obj(self.obj, "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_all(),
+            (),
+            True,
+        )
+        # Ask for obj access.
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read"),
+            scope.access_all("read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read"),
+            scope.access_app("dj_authtokens", "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read"),
+            scope.access_model(TestModel, "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read"),
+            scope.access_obj(self.obj, "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_obj(self.obj, "read"),
+            (),
+            False,
+        )
+        # Ask for model access.
+        self.assertScopeCorrect(
+            scope.access_model(TestModel, "read"),
+            scope.access_all("read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_model(TestModel, "read"),
+            scope.access_app("dj_authtokens", "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_model(TestModel, "read"),
+            scope.access_model(TestModel, "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_model(TestModel, "read"),
+            scope.access_obj(self.obj, "read"),
+            False,
+        )
+        self.assertScopeCorrect(
+            scope.access_model(TestModel, "read"),
+            (),
+            False,
+        )
+        # Ask for app access.
+        self.assertScopeCorrect(
+            scope.access_app("dj_authtokens", "read"),
+            scope.access_all("read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_app("dj_authtokens", "read"),
+            scope.access_app("dj_authtokens", "read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_app("dj_authtokens", "read"),
+            scope.access_model(TestModel, "read"),
+            False,
+        )
+        self.assertScopeCorrect(
+            scope.access_app("dj_authtokens", "read"),
+            scope.access_obj(self.obj, "read"),
+            False,
+        )
+        self.assertScopeCorrect(
+            scope.access_app("dj_authtokens", "read"),
+            (),
+            False,
+        )
+        # Ask for global access.
+        self.assertScopeCorrect(
+            scope.access_all("read"),
+            scope.access_all("read"),
+            True,
+        )
+        self.assertScopeCorrect(
+            scope.access_all("read"),
+            scope.access_app("dj_authtokens", "read"),
+            False,
+        )
+        self.assertScopeCorrect(
+            scope.access_all("read"),
+            scope.access_model(TestModel, "read"),
+            False,
+        )
+        self.assertScopeCorrect(
+            scope.access_all("read"),
+            scope.access_obj(self.obj, "read"),
+            False,
+        )
+        self.assertScopeCorrect(
+            scope.access_all("read"),
+            (),
+            False,
+        )
 
     def testKitchenSink(self):
         # Access specific models using a global read token.

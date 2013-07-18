@@ -54,10 +54,9 @@ def access_all(*permissions):
 
 
 def _is_sub_scope(scope, parent_scope):
-    access_permission = object()
     return not any (
-        (set(permissions_grant) | set((access_permission,))) - set(chain.from_iterable(
-            parent_permissions_grant + (access_permission,)
+        frozenset(permissions_grant).difference(chain.from_iterable(
+            parent_permissions_grant
             for parent_model_grant, parent_permissions_grant
             in parent_scope
             if all(
@@ -68,4 +67,5 @@ def _is_sub_scope(scope, parent_scope):
         ))
         for model_grant, permissions_grant
         in scope
+        if permissions_grant
     )
