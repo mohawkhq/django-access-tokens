@@ -1,8 +1,12 @@
-from itertools import chain, izip, izip_longest
+from itertools import chain, izip_longest
+
+
+def _make_grant(model_grant, permissions_grant):
+    return ((model_grant, permissions_grant),)
 
 
 def access_obj(obj, *permissions):
-    return (
+    return _make_grant(
         (
             obj._meta.app_label,
             obj._meta.module_name,
@@ -13,7 +17,7 @@ def access_obj(obj, *permissions):
 
 
 def access_model(model, *permissions):
-    return (
+    return _make_grant(
         (
             model._meta.app_label,
             model._meta.module_name,
@@ -23,7 +27,7 @@ def access_model(model, *permissions):
 
 
 def access_app(app_label, *permissions):
-    return (
+    return _make_grant(
         (
             app_label,
         ),
@@ -32,7 +36,7 @@ def access_app(app_label, *permissions):
 
 
 def access_all(*permissions):
-    return (
+    return _make_grant(
         (),
         permissions,
     )
@@ -43,7 +47,7 @@ def _is_sub_scope(scope, parent_scope):
         frozenset(permissions_grant).difference(chain.from_iterable(
             parent_permissions_grant
             for parent_model_grant, parent_permissions_grant
-            in izip(*((iter(parent_scope),) * 2))
+            in parent_scope
             if all(
                 parent_model_grant_part == model_grant_part
                 for model_grant_part, parent_model_grant_part
@@ -55,6 +59,6 @@ def _is_sub_scope(scope, parent_scope):
             )
         ))
         for model_grant, permissions_grant
-        in izip(*((iter(scope),) * 2))
+        in scope
         if permissions_grant
     )
