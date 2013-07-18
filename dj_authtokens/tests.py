@@ -1,6 +1,4 @@
 import time
-from itertools import product
-from operator import add
 
 from django.db import models
 from django.test import TestCase
