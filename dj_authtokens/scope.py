@@ -1,45 +1,39 @@
-from itertools import chain
-
-
-def _make_grant(permissions, app_label=None, module_name=None, pk=None):
-    return (
-        (
-            (
-                app_label,
-                module_name,
-                pk,
-            ),
-            permissions,
-        ),
-    )
+from itertools import chain, izip, izip_longest
 
 
 def access_obj(obj, *permissions):
-    return _make_grant(
+    return (
+        (
+            obj._meta.app_label,
+            obj._meta.module_name,
+            obj.pk,
+        ),
         permissions,
-        obj._meta.app_label,
-        obj._meta.module_name,
-        obj.pk,
     )
 
 
 def access_model(model, *permissions):
-    return _make_grant(
+    return (
+        (
+            model._meta.app_label,
+            model._meta.module_name,
+        ),
         permissions,
-        model._meta.app_label,
-        model._meta.module_name,
     )
 
 
 def access_app(app_label, *permissions):
-    return _make_grant(
+    return (
+        (
+            app_label,
+        ),
         permissions,
-        app_label,
     )
 
 
 def access_all(*permissions):
-    return _make_grant(
+    return (
+        (),
         permissions,
     )
 
@@ -49,14 +43,18 @@ def _is_sub_scope(scope, parent_scope):
         frozenset(permissions_grant).difference(chain.from_iterable(
             parent_permissions_grant
             for parent_model_grant, parent_permissions_grant
-            in parent_scope
+            in izip(*((iter(parent_scope),) * 2))
             if all(
-                parent_model_grant_part is None or parent_model_grant_part == model_grant_part
+                parent_model_grant_part == model_grant_part
                 for model_grant_part, parent_model_grant_part
-                in zip(model_grant, parent_model_grant)
+                in izip_longest(
+                    model_grant,
+                    parent_model_grant,
+                )
+                if parent_model_grant_part is not None
             )
         ))
         for model_grant, permissions_grant
-        in scope
+        in izip(*((iter(scope),) * 2))
         if permissions_grant
     )
