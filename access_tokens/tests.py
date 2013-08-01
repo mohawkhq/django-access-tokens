@@ -16,33 +16,60 @@ class TestModel2(models.Model):
     pass
 
 
+default_token_generator = tokens.default_token_generator
+
+basic_scope_serializer = scope.ScopeSerializer()
+basic_token_generator = tokens.TokenGenerator(basic_scope_serializer)
+
+content_type_scope_serializer = type("ContentTypeScopeSerializer", (
+    scope.ScopeSerializer,
+    scope.ContentTypeScopeSerializerMixin,
+), {})()
+content_type_token_generator = tokens.TokenGenerator(content_type_scope_serializer)
+
+auth_permission_scope_serializer = type("AuthPermissionScopeSerializer", (
+    scope.ScopeSerializer,
+    scope.AuthPermissionScopeSerializerMixin,
+), {})()
+auth_permission_token_generator = tokens.TokenGenerator(auth_permission_scope_serializer)
+
+kitchen_sink_scope_serializer = type("KitchenSinkScopeSerializer", (
+    scope.ScopeSerializer,
+    scope.ContentTypeScopeSerializerMixin,
+    scope.AuthPermissionScopeSerializerMixin,
+), {})()
+kitchen_sink_token_generator = tokens.TokenGenerator(kitchen_sink_scope_serializer)
+
+
 class TestAccessTokens(TestCase):
+
+    token_generator = default_token_generator
 
     def setUp(self):
         self.obj = TestModel.objects.create()
         self.obj2 = TestModel2.objects.create()
 
     def testInvalidTokenGrantsNothing(self):
-        self.assertFalse(tokens.validate("bad_token", scope.access_all()))
+        self.assertFalse(self.token_generator.validate("bad_token", scope.access_all()))
 
     def testIncorrectSaltGrantsNothing(self):
-        valid_token = tokens.generate(scope.access_all())
-        self.assertFalse(tokens.validate(valid_token, scope.access_all(), salt="bad_salt"))
+        valid_token = self.token_generator.generate(scope.access_all())
+        self.assertFalse(self.token_generator.validate(valid_token, scope.access_all(), salt="bad_salt"))
 
     def testIncorrectKeyGrantsNothing(self):
-        valid_token = tokens.generate(scope.access_all())
-        self.assertFalse(tokens.validate(valid_token, scope.access_all(), key="bad_key"))
+        valid_token = self.token_generator.generate(scope.access_all())
+        self.assertFalse(self.token_generator.validate(valid_token, scope.access_all(), key="bad_key"))
 
     def testExpiredAccessTokenGrantsNothing(self):
-        valid_token = tokens.generate(scope.access_all())
+        valid_token = self.token_generator.generate(scope.access_all())
         time.sleep(0.1)
-        self.assertFalse(tokens.validate(valid_token, scope.access_all(), max_age=0.05))
+        self.assertFalse(self.token_generator.validate(valid_token, scope.access_all(), max_age=0.05))
 
     # Valid token tests.
 
     def assertScope(self, scope, parent_scope, expected):
-        token = tokens.generate(scope)
-        self.assertEqual(tokens.validate(token, parent_scope), expected)
+        token = self.token_generator.generate(scope)
+        self.assertEqual(self.token_generator.validate(token, parent_scope), expected)
 
     def assertScopeValid(self, scope, parent_scope):
         return self.assertScope(scope, parent_scope, True)
@@ -250,3 +277,23 @@ class TestAccessTokens(TestCase):
             scope.access_obj(self.obj, "read", "write"),
             scope.access_model(self.obj, "write") + scope.access_all("read"),
         )
+
+
+class TestAccessTokensBasicTokenGenerator(TestAccessTokens):
+
+    token_generator = basic_token_generator
+
+
+class TestAccessTokensContentTypeTokenGenerator(TestAccessTokens):
+
+    token_generator = content_type_token_generator
+
+
+class TestAccessTokensAuthPermissionTokenGenerator(TestAccessTokens):
+
+    token_generator = auth_permission_token_generator
+
+
+class TestAccessTokensKitchenSinkTokenGenerator(TestAccessTokens):
+
+    token_generator = kitchen_sink_token_generator
