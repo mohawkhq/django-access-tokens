@@ -95,7 +95,8 @@ Some examples of token validation:
     )
 
     # Test the above token again, but only allow tokens generated in the last five minutes.
-    tokens.validate(some_token,
+    tokens.validate(
+        some_token,
         scope.access_app("your_app", "publish"),
         max_age = 60 * 5,
     )
