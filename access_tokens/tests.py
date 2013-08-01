@@ -59,6 +59,21 @@ class TestAccessTokens(TestCase):
         self.obj = TestModel.objects.create()
         self.obj2 = TestModel2.objects.create()
 
+    # Token compatibility tests.
+
+    def testMismatchedTokenFormatDoesNotError(self):
+        for token_generator in (default_token_generator, basic_token_generator, content_type_token_generator, auth_permission_token_generator, kitchen_sink_token_generator):
+            self.assertEqual(
+                self.token_generator.validate(token_generator.generate(scope.access_all("read")), scope.access_all("read")),
+                token_generator._scope_serializer.get_scope_protocol_version() == self.token_generator._scope_serializer.get_scope_protocol_version(),
+            )
+            self.assertEqual(
+                token_generator.validate(self.token_generator.generate(scope.access_all("read")), scope.access_all("read")),
+                token_generator._scope_serializer.get_scope_protocol_version() == self.token_generator._scope_serializer.get_scope_protocol_version(),
+            )
+
+    # Invalid token tests.
+
     def testInvalidTokenGrantsNothing(self):
         self.assertFalse(self.token_generator.validate("bad_token", scope.access_all()))
 
