@@ -1,9 +1,13 @@
-import time
+import time, unittest
 
 from django.db import models
 from django.test import TestCase
+from django.conf import settings
 
 from access_tokens import tokens, scope
+
+
+# Define some test models.
 
 
 class TestModel(models.Model):
@@ -16,29 +20,35 @@ class TestModel2(models.Model):
     pass
 
 
+# Create all possible combinations of token generators.
+
+
 default_token_generator = tokens.default_token_generator
 
 basic_scope_serializer = scope.ScopeSerializer()
 basic_token_generator = tokens.TokenGenerator(basic_scope_serializer)
 
 content_type_scope_serializer = type("ContentTypeScopeSerializer", (
-    scope.ScopeSerializer,
     scope.ContentTypeScopeSerializerMixin,
+    scope.ScopeSerializer,
 ), {})()
 content_type_token_generator = tokens.TokenGenerator(content_type_scope_serializer)
 
 auth_permission_scope_serializer = type("AuthPermissionScopeSerializer", (
-    scope.ScopeSerializer,
     scope.AuthPermissionScopeSerializerMixin,
+    scope.ScopeSerializer,
 ), {})()
 auth_permission_token_generator = tokens.TokenGenerator(auth_permission_scope_serializer)
 
 kitchen_sink_scope_serializer = type("KitchenSinkScopeSerializer", (
-    scope.ScopeSerializer,
     scope.ContentTypeScopeSerializerMixin,
     scope.AuthPermissionScopeSerializerMixin,
+    scope.ScopeSerializer,
 ), {})()
 kitchen_sink_token_generator = tokens.TokenGenerator(kitchen_sink_scope_serializer)
+
+
+# Test all possible combinations of token generators.
 
 
 class TestAccessTokens(TestCase):
@@ -284,16 +294,68 @@ class TestAccessTokensBasicTokenGenerator(TestAccessTokens):
     token_generator = basic_token_generator
 
 
+@unittest.skipUnless(
+    "django.contrib.contenttypes" in settings.INSTALLED_APPS,
+    "django.contrib.contenttypes app not installed",
+)
 class TestAccessTokensContentTypeTokenGenerator(TestAccessTokens):
 
     token_generator = content_type_token_generator
 
+    def testContentTypeTokenGeneratorCreatesEquivalentGlobalTokens(self):
+        self.assertEqual(
+            len(self.token_generator.generate(scope.access_all())),
+            len(basic_token_generator.generate(scope.access_all())),
+        )
 
+    def testContentTypeTokenGeneratorCreatesEquivalentAppTokens(self):
+        self.assertEqual(
+            len(self.token_generator.generate(scope.access_app("access_tokens"))),
+            len(basic_token_generator.generate(scope.access_app("access_tokens"))),
+        )
+
+    def testContentTypeTokenGeneratorCreatesSmallerModelTokens(self):
+        self.assertLess(
+            len(self.token_generator.generate(scope.access_model(TestModel))),
+            len(basic_token_generator.generate(scope.access_model(TestModel))),
+        )
+
+    def testContentTypeTokenGeneratorCreatesSmallerObjectTokens(self):
+        self.assertLess(
+            len(self.token_generator.generate(scope.access_obj(self.obj))),
+            len(basic_token_generator.generate(scope.access_obj(self.obj))),
+        )
+
+
+@unittest.skipUnless(
+    "django.contrib.auth" in settings.INSTALLED_APPS,
+    "django.contrib.auth app not installed",
+)
 class TestAccessTokensAuthPermissionTokenGenerator(TestAccessTokens):
 
     token_generator = auth_permission_token_generator
 
+    def testAuthPermissionTokenGeneratorCreatesEquivalentUnknownPermissionTokens(self):
+        self.assertEqual(
+            len(self.token_generator.generate(scope.access_all("read"))),
+            len(basic_token_generator.generate(scope.access_all("read"))),
+        )
 
-class TestAccessTokensKitchenSinkTokenGenerator(TestAccessTokens):
+    def testContentTypeTokenGeneratorCreatesSmallerKnownPermissionTokens(self):
+        self.assertLess(
+            len(self.token_generator.generate(scope.access_all("auth.change_permission"))),
+            len(basic_token_generator.generate(scope.access_all("auth.change_permission"))),
+        )
+
+
+@unittest.skipUnless(
+    "django.contrib.contenttypes" in settings.INSTALLED_APPS,
+    "django.contrib.contenttypes app not installed",
+)
+@unittest.skipUnless(
+    "django.contrib.auth" in settings.INSTALLED_APPS,
+    "django.contrib.auth app not installed",
+)
+class TestAccessTokensKitchenSinkTokenGenerator(TestAccessTokensContentTypeTokenGenerator, TestAccessTokensAuthPermissionTokenGenerator):
 
     token_generator = kitchen_sink_token_generator

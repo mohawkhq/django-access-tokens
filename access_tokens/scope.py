@@ -116,6 +116,7 @@ class ScopeSerializer(object):
 class ContentTypeScopeSerializerMixin(object):
 
     def __init__(self):
+        super(ContentTypeScopeSerializerMixin, self).__init__();
         # Lazy-load content type model.
         from django.contrib.contenttypes.models import ContentType
         self._content_type_model = ContentType
@@ -125,28 +126,29 @@ class ContentTypeScopeSerializerMixin(object):
 
     def serialize_model_grant(self, model_grant):
         if len(model_grant) >= 2:
-            return (self._content_type_model.objects.get_by_natural_key(*model_grant).id,) + model_grant[2:]
+            return (self._content_type_model.objects.get_by_natural_key(*model_grant[:2]).id,) + model_grant[2:]
         return model_grant
 
     def deserialize_model_grant(self, serialized_model_grant):
         if serialized_model_grant and isinstance(serialized_model_grant[0], int):
-            model = self._content_type_model.objects.get_by_id(serialized_model_grant[0]).model_class()
-            return (
+            model = self._content_type_model.objects.get_for_id(serialized_model_grant[0]).model_class()
+            return [
                 model._meta.app_label,
                 model._meta.module_name,
-            ) + serialized_model_grant[1:]
+            ] + serialized_model_grant[1:]
         return serialized_model_grant
 
 
 class AuthPermissionScopeSerializerMixin(object):
 
     def __init__(self):
+        super(AuthPermissionScopeSerializerMixin, self).__init__();
         # Lazy-load Permission model.
         from django.contrib.auth.models import Permission
         self._permission_model = Permission
 
     def get_scope_protocol_version(self):
-        return super(ContentTypeScopeSerializerMixin, self).get_scope_protocol_version() + "+django.contrib.auth.Permission"
+        return super(AuthPermissionScopeSerializerMixin, self).get_scope_protocol_version() + "+django.contrib.auth.Permission"
 
     def serialize_permission_grant(self, permission_grant):
         try:
@@ -159,7 +161,7 @@ class AuthPermissionScopeSerializerMixin(object):
                     content_type__app_label = app_label,
                     codename = codename,
                 )
-            except (self._permission_Model.DoesNotExist, self._permission_model.MultipleObjectsReturned):
+            except (self._permission_model.DoesNotExist, self._permission_model.MultipleObjectsReturned):
                 pass
             else:
                 return permission.id
@@ -174,8 +176,6 @@ class AuthPermissionScopeSerializerMixin(object):
 DefaultScopeSerializer = type(
     "DefaultScopeSerializer",
     (
-        ScopeSerializer,
-    ) + (
         (
             ContentTypeScopeSerializerMixin,
         ) if "django.contrib.contenttypes" in settings.INSTALLED_APPS else ()
@@ -183,6 +183,8 @@ DefaultScopeSerializer = type(
         (
             AuthPermissionScopeSerializerMixin,
         ) if "django.contrib.auth" in settings.INSTALLED_APPS else ()
+    ) + (
+        ScopeSerializer,
     ),
     {},
 )
