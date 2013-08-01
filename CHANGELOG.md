@@ -2,7 +2,7 @@ django-access-tokens changelog
 ==============================
 
 
-1.0.0 - 01/11/2012
+1.0.0 - ??/??/????
 ------------------
 
 * First production release.
