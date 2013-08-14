@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-from access-tokens import __version__
+from access_tokens import __version__
 
 
 version_str = ".".join(str(n) for n in __version__)
