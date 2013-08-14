@@ -15,7 +15,7 @@ setup(
     author_email = "dave@etianen.com",
     url = "http://github.com/mohawkhq/django-access-tokens",
     packages = [
-        "access-tokens",
+        "access_tokens",
     ],
     classifiers = [
         "Development Status :: 5 - Production/Stable",
