@@ -199,15 +199,6 @@ class ContentTypeScopeSerializerMixin(object):
         from django.contrib.contenttypes.models import ContentType
         self._content_type_model = ContentType
 
-    def get_scope_protocol_version(self):
-        """
-        Returns the scope protocol version, which is incorporated
-        in the token generator's salt.
-
-        This prevents incompatible protocol versions from causing errors.
-        """
-        return super(ContentTypeScopeSerializerMixin, self).get_scope_protocol_version() + "+django.contrib.contenttypes.ContentType"
-
     def serialize_model_grant(self, model_grant):
         """
         Returns a compact representation of the given model grant.
@@ -240,15 +231,6 @@ class AuthPermissionScopeSerializerMixin(object):
         # Lazy-load Permission model.
         from django.contrib.auth.models import Permission
         self._permission_model = Permission
-
-    def get_scope_protocol_version(self):
-        """
-        Returns the scope protocol version, which is incorporated
-        in the token generator's salt.
-
-        This prevents incompatible protocol versions from causing errors.
-        """
-        return super(AuthPermissionScopeSerializerMixin, self).get_scope_protocol_version() + "+django.contrib.auth.Permission"
 
     def serialize_permission_grant(self, permission_grant):
         """
