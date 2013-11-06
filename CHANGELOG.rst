@@ -22,6 +22,9 @@ of the required permissions.
 Sites that provide access tokens for the exact set of required permissions are unaffected
 by this exploit.
 
+**RESOLUTION:** The logic for validating an access token has been updated to correctly
+validate that a received access token is a *superset* of the required permissions.
+
 
 0.9.1 - 01/10/2013
 ------------------
