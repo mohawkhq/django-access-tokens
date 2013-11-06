@@ -10,7 +10,7 @@ smaller subset of the required permissions. As an extreme case, an access token
 granting no permissions could be used to access any permissions on the site.
 
 **AFFECTED SITES:** Since a token cannot be generated without knowledge of the
-secret key, attackers cannot access arbitrary resources using this exploit. However,
+secret key, attackers **cannot** access arbitrary resources using this exploit. However,
 an access token that proves *some*, but not all of the required permissions for a
 resource can be used to access that resource. If the access token provides additional
 permissions not required by the resource, then authorization will still fail.
