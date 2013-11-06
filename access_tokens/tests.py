@@ -93,8 +93,8 @@ class TestAccessTokens(TestCase):
     # Valid token tests.
 
     def assertScope(self, scope, parent_scope, expected):
-        token = self.token_generator.generate(scope)
-        self.assertEqual(self.token_generator.validate(token, parent_scope), expected)
+        token = self.token_generator.generate(parent_scope)
+        self.assertEqual(self.token_generator.validate(token, scope), expected)
 
     def assertScopeValid(self, scope, parent_scope):
         return self.assertScope(scope, parent_scope, True)

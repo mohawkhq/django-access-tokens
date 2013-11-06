@@ -61,7 +61,7 @@ class TokenGenerator(object):
         # Deserialize the scope.
         token_scope = self._scope_serializer.deserialize_scope(serialized_token_scope)
         # Check the scopes.
-        return _is_sub_scope(token_scope, scope)
+        return _is_sub_scope(scope, token_scope)
 
 
 # Instantiate a default token generator.
