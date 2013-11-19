@@ -7,6 +7,6 @@ env:
 install:
   - pip install $DJANGO
   - python setup.py -q install
-script: cd test_project && python manage.py test require
+script: cd access_tokens_test && python manage.py test access_tokens
 notifications:
   email: false
