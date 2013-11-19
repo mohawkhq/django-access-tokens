@@ -11,4 +11,4 @@ dist
 build
 MANIFEST
 venv
-access_tokens_test
+test.db
