@@ -16,6 +16,12 @@ from django.conf import settings
 
 # Scope generation.
 
+def get_model_name(opts):
+    try:
+        return opts.model_name
+    except AttributeError:
+        return opts.module_name  # Django < 1.8
+
 
 def _make_grant(model_grant, permissions_grant):
     """
@@ -33,7 +39,7 @@ def access_obj(obj, *permissions):
     return _make_grant(
         (
             obj._meta.app_label,
-            obj._meta.module_name,
+            get_model_name(obj._meta),
             obj.pk,
         ),
         permissions,
@@ -48,7 +54,7 @@ def access_model(model, *permissions):
     return _make_grant(
         (
             model._meta.app_label,
-            model._meta.module_name,
+            get_model_name(model._meta),
         ),
         permissions,
     )
@@ -216,7 +222,7 @@ class ContentTypeScopeSerializerMixin(object):
             model = self._content_type_model.objects.get_for_id(serialized_model_grant[0]).model_class()
             return [
                 model._meta.app_label,
-                model._meta.module_name,
+                get_model_name(model._meta),
             ] + serialized_model_grant[1:]
         return serialized_model_grant
 
